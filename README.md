@@ -1,7 +1,7 @@
 pymapr
 ======
 
-This is a simple multiprocessing based MapReduce framework in Python that is based on the [Introduction to Data Science ](https://class.coursera.org/datasci-001/) course on [Coursera](https://www.coursera.org/) taught by Bill Howe.
+This is a simple multiprocessing based [MapReduce](http://en.wikipedia.org/wiki/MapReduce) framework in Python that is based on the [Introduction to Data Science ](https://class.coursera.org/datasci-001/) course on [Coursera](https://www.coursera.org/) taught by [Bill Howe.](http://homes.cs.washington.edu/~billhowe/)
 
 In the course a simple single threaded implementation of the framework was given for the students to experiment in the small datasets that were given in the exercises. This implementation can be seen in ``MapReduce_original.py`` that's included here for comparison's sake.
 
@@ -57,6 +57,11 @@ The implementation (``MapReduce.py``) uses Python's ``multiprocessing`` module t
 
 After the submission of the work to be done in the Map processes the Master process proceeds to immediately waiting for the intermediate results to arrive from the workers. It can therefore do the "shuffling" of the intermediate results while waiting for the mapper processes to finish. The intermediate queue (``IQUEUE``) can then in parallel be populated by the mappers (or the reducers) and emptied by the master. 
 
+
+### Redis implementation
+In ``MapReduce_redis.py`` there's an alternative implementation where the persistence of the results is done through [Redis](http://redis.io). In the same way the Master process submits the work to be done to the Map processes but now the intermediate results are stored in Redis [lists](http://redis.io/topics/data-types#lists) indexed by the supplied key. Redis therefore does the shuffling - grouping of the intermediate results. The reduce processes then directly access the Redis lists and retrieve the aggregated intermediate results.
+
+In order to use it, change your mapreduce driver program (e.g. ``wordcount.py``) to ``import MapReduce_redis``.
 
 
 
