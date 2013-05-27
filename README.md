@@ -51,9 +51,9 @@ and you should get something like the following (in 4-core machine):
 For your mapreduce tasks you need to create similar code and provide your own map and reduce functions. The map functions should invoke the ``emit_intermediate`` function of ``MapReduce`` wheres the reduce functions should invoke the ``emit`` instead.
 
 ### Design
-This framework makes sense in a multicore machine and of course for lightweight processing tasks that can be efficiently handled in a single machine. Of course there's no  error handling and recovery, you need to run [Hadoop](http://hadoop.apache.org/) for these (duh!)
+This framework makes sense in a multicore machine and of course for lightweight processing tasks that can be efficiently handled in a single machine. Of course there's no  error handling and recovery, you need to run [Hadoop](http://hadoop.apache.org/) for these (duh!).
 
-The implementation (``MapReduce.py``) uses Python's ``multiprocessing`` module to spawn a number of processes (equal to the number of cores in the machine, by default) for running the map and reduce phases. The master process (i.e. the parent) sends work the spawned children using [pipes](http://docs.python.org/2/library/multiprocessing.html#multiprocessing.Pipe). The worker processes (children) send their results (intermediate, in the case of map processes) using a [Queue](http://docs.python.org/2/library/multiprocessing.html#multiprocessing.Queue) (``IQUEUE`` variable in the code). The master process is using one communication channel per worker (mapper/producer) process in order to submit the work to be done. So during the map phase the master process sends the data to the mappers in a round-robin fashion using the per-worker pipe.
+The implementation (``MapReduce.py``) uses Python's ``multiprocessing`` module to spawn a number of processes (equal to the number of cores in the machine, by default) for running the map and reduce phases. The master process (i.e. the parent) sends the work to the spawned children using [pipes](http://docs.python.org/2/library/multiprocessing.html#multiprocessing.Pipe). The worker processes (children) send their results (intermediate, in the case of map processes) using a [Queue](http://docs.python.org/2/library/multiprocessing.html#multiprocessing.Queue) (``IQUEUE`` variable in the code). The master process is using one communication channel per worker (mapper/producer) process in order to submit the work to be done. So during the map phase the master process sends the data to the mappers in a round-robin fashion using the per-worker pipe.
 
 After the submission of the work to be done in the Map processes the Master process proceeds to immediately waiting for the intermediate results to arrive from the workers. It can therefore do the "shuffling" of the intermediate results while waiting for the mapper processes to finish. The intermediate queue (``IQUEUE``) can then in parallel be populated by the mappers (or the reducers) and emptied by the master. 
 
@@ -61,7 +61,7 @@ After the submission of the work to be done in the Map processes the Master proc
 ### Redis implementation
 In ``MapReduce_redis.py`` there's an alternative implementation where the persistence of the results is done through [Redis](http://redis.io). In the same way the Master process submits the work to be done to the Map processes but now the intermediate results are stored in Redis [lists](http://redis.io/topics/data-types#lists) indexed by the supplied key. Redis therefore does the shuffling - grouping of the intermediate results. The reduce processes then directly access the Redis lists and retrieve the aggregated intermediate results.
 
-In order to use it, change your mapreduce driver program (e.g. ``wordcount.py``) to ``import MapReduce_redis``.
+In order to use it, change your mapreduce driver program (e.g. ``wordcount.py``) to ``import MapReduce_redis as MapReduce``.
 
 
 
