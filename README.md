@@ -51,7 +51,7 @@ and you should get something like the following (in 4-core machine):
 For your mapreduce tasks you need to create similar code and provide your own map and reduce functions. The map functions should invoke the ``emit_intermediate`` function of ``MapReduce`` wheres the reduce functions should invoke the ``emit`` instead.
 
 ### Design
-This framework makes sense in a multicore machine and of course for lightweight processing tasks that can be efficiently handled in single machine. Of course there's no 
+This framework makes sense in a multicore machine and of course for lightweight processing tasks that can be efficiently handled in a single machine. Of course there's no  error handling and recovery, you need to run [Hadoop](http://hadoop.apache.org/) for these (duh!)
 
 The implementation (``MapReduce.py``) uses Python's ``multiprocessing`` module to spawn a number of processes (equal to the number of cores in the machine, by default) for running the map and reduce phases. The master process (i.e. the parent) sends work the spawned children using [pipes](http://docs.python.org/2/library/multiprocessing.html#multiprocessing.Pipe). The worker processes (children) send their results (intermediate, in the case of map processes) using a [Queue](http://docs.python.org/2/library/multiprocessing.html#multiprocessing.Queue) (``IQUEUE`` variable in the code). The master process is using one communication channel per worker (mapper/producer) process in order to submit the work to be done. So during the map phase the master process sends the data to the mappers in a round-robin fashion using the per-worker pipe.
 
